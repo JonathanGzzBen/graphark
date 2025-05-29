@@ -115,9 +115,6 @@ int main(void) {
   if (!glfwInit())
     return -1;
 
-  /*   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); */
   glfwSetErrorCallback(glfw_error_callback);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
@@ -152,9 +149,15 @@ int main(void) {
   glUseProgram(program);
 
   float vertices[] = {
+      // Triangle 1
       -0.5f, -0.5f, 0.0f, // One
-      0.5f,  -0.5f, 0.0f, // Two
-      0.0f,  0.5f,  0.0f  // Three
+      -0.5f, 0.5f, 0.0f,  // Two
+      0.5f, 0.5f, 0.0f,   // Three
+
+      // Triangle 2
+      -0.5f, -0.5f, 0.0f, // One
+      0.5f, -0.5f, 0.0f,  // Two
+      0.5f, 0.5f, 0.0f,   // Three
   };
 
   unsigned int vao;
@@ -177,7 +180,7 @@ int main(void) {
     /* Render here */
     glClear(GL_COLOR_BUFFER_BIT);
 
-    glDrawArrays(GL_TRIANGLES, 0, 3);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
 
     /* Swap front and back buffers */
     glfwSwapBuffers(window);
