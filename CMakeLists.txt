@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.11)
-project(OpenGL-Drill)
+project(Graficar-GL)
 
 include(FetchContent)
 
@@ -36,7 +36,7 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(glfw glew glm expected)
 
 add_executable(${PROJECT_NAME} src/main.cpp)
-target_compile_definitions(${PROJECT_NAME} PRIVATE EXPERIMENT_NAME="OpenGL-Drill")
+target_compile_definitions(${PROJECT_NAME} PRIVATE  WINDOW_TITLE="${PROJECT_NAME}")
 target_link_libraries(${PROJECT_NAME} glfw libglew_static glm::glm expected)
 set_target_properties(${PROJECT_NAME} PROPERTIES CXX_STANDARD 23)
 set_target_properties(${PROJECT_NAME} PROPERTIES CXX_STANDARD_REQUIRED ON)
