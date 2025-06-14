@@ -35,8 +35,26 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(glfw glew glm expected)
 
-add_executable(${PROJECT_NAME} src/main.cpp)
-target_compile_definitions(${PROJECT_NAME} PRIVATE  WINDOW_TITLE="${PROJECT_NAME}")
-target_link_libraries(${PROJECT_NAME} glfw libglew_static glm::glm expected)
-set_target_properties(${PROJECT_NAME} PROPERTIES CXX_STANDARD 23)
-set_target_properties(${PROJECT_NAME} PROPERTIES CXX_STANDARD_REQUIRED ON)
+set(graphark_lib "${PROJECT_NAME}_lib")
+add_library(${graphark_lib}
+  lib/graphark/src/function_evaluator.cpp
+  lib/graphark/src/drawable_elements.cpp
+)
+target_include_directories(${graphark_lib} PUBLIC
+  ${CMAKE_SOURCE_DIR}/lib/graphark/include
+  ${CMAKE_SOURCE_DIR}/third_party/exprtk/include)
+target_link_libraries(${graphark_lib} libglew_static)
+set_target_properties(${graphark_lib} PROPERTIES CXX_STANDARD 23)
+set_target_properties(${graphark_lib} PROPERTIES CXX_STANDARD_REQUIRED ON)
+
+if(MSVC)
+  message(STATUS "Adding /bigobj compiler flag for MSVC.")
+  target_compile_options(${graphark_lib} PUBLIC /bigobj)
+endif()
+
+set(graphark "${PROJECT_NAME}")
+add_executable(${graphark} src/main.cpp)
+target_link_libraries(${graphark} ${graphark_lib} glfw libglew_static glm::glm expected)
+target_include_directories(${graphark} PRIVATE ${CMAKE_SOURCE_DIR}/include)
+set_target_properties(${graphark} PROPERTIES CXX_STANDARD 23)
+set_target_properties(${graphark} PROPERTIES CXX_STANDARD_REQUIRED ON)

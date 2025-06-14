@@ -10,6 +10,9 @@
 #include <string>
 #include <tl/expected.hpp>
 
+#include "drawable.h"
+#include "drawable_elements.h"
+#include "function_evaluator.h"
 
 using Error = struct Error {
   std::string message;
@@ -141,128 +144,6 @@ auto get_aspect_ratio(GLFWwindow *window) -> tl::expected<float, Error> {
   return aspect_ratio;
 }
 
-template <typename T>
-auto map_linear(T value, T in_min, T in_max, T out_min, T out_max) -> T {
-  return ((value - in_min) / (in_max - in_min)) * (out_max - out_min) + out_min;
-}
-
-static constexpr int X_MIN = -10;
-static constexpr int X_MAX = 10;
-auto map_to_opengl_coordinates(float value) -> float {
-  // static constexpr int Y_MIN = -100;
-  // static constexpr int Y_MAX = 100;
-  return map_linear<float>(value, X_MIN, X_MAX, -1.0f, 1.0f);
-}
-
-using Drawable = struct Drawable {
-  unsigned int vao;
-  unsigned int vbo;
-  GLenum draw_mode;
-  GLsizei vertex_count;
-};
-
-auto get_axis_drawable() -> Drawable {
-  std::vector<float> line{};
-  line.push_back(-1.0f);
-  line.push_back(0.0f);
-  line.push_back(1.0f);
-  line.push_back(0.0f);
-  line.push_back(0.0f);
-  line.push_back(-1.0f);
-  line.push_back(0.0f);
-  line.push_back(1.0f);
-
-  unsigned int vao;
-  glCreateVertexArrays(1, &vao);
-  glBindVertexArray(vao);
-
-  unsigned int vbo;
-  glGenBuffers(1, &vbo);
-  glBindBuffer(GL_ARRAY_BUFFER, vbo);
-
-  glBufferData(GL_ARRAY_BUFFER, line.size() * sizeof(float), line.data(),
-               GL_STATIC_DRAW);
-  glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), nullptr);
-  glEnableVertexAttribArray(0);
-
-  return Drawable{.vao = vao,
-                  .vbo = vbo,
-                  .draw_mode = GL_LINES,
-                  .vertex_count = static_cast<int>(line.size()) / 2};
-}
-
-auto get_grid_drawable() -> Drawable {
-  std::vector<float> vertices{};
-  auto func = [](float x) { return x; };
-
-  // Horizontal lines
-  for (int y_i = -10; y_i <= 10; y_i++) {
-    vertices.push_back(-1.0f);
-    vertices.push_back(static_cast<float>(y_i) * 0.1f);
-    vertices.push_back(1.0f);
-    vertices.push_back(static_cast<float>(y_i) * 0.1f);
-  }
-  // Vertical lines
-  for (int x_i = -10; x_i <= 10; x_i++) {
-    vertices.push_back(static_cast<float>(x_i) * 0.1f);
-    vertices.push_back(-1.0f);
-    vertices.push_back(static_cast<float>(x_i) * 0.1f);
-    vertices.push_back(1.0f);
-  }
-
-  unsigned int vao;
-  glCreateVertexArrays(1, &vao);
-  glBindVertexArray(vao);
-
-  unsigned int vbo;
-  glGenBuffers(1, &vbo);
-  glBindBuffer(GL_ARRAY_BUFFER, vbo);
-
-  glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float),
-               vertices.data(), GL_STATIC_DRAW);
-  // glBufferData(GL_ARRAY_BUFFER, sizeof(line), line, GL_STATIC_DRAW);
-  glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), nullptr);
-  glEnableVertexAttribArray(0);
-
-  return Drawable{.vao = vao,
-                  .vbo = vbo,
-                  .draw_mode = GL_LINES,
-                  .vertex_count = static_cast<int>(vertices.size()) / 2};
-}
-
-auto get_function_line_drawable(const std::function<float(float)> &func)
-    -> Drawable {
-
-  std::vector<float> line{};
-
-  float x = X_MIN;
-  while (x <= X_MAX) {
-    float y = func(x);
-    line.push_back(map_to_opengl_coordinates(x));
-    line.push_back(map_to_opengl_coordinates(y));
-    x += 0.1f;
-  }
-
-  unsigned int vao;
-  glCreateVertexArrays(1, &vao);
-  glBindVertexArray(vao);
-
-  unsigned int vbo;
-  glGenBuffers(1, &vbo);
-  glBindBuffer(GL_ARRAY_BUFFER, vbo);
-
-  glBufferData(GL_ARRAY_BUFFER, line.size() * sizeof(float), line.data(),
-               GL_STATIC_DRAW);
-  // glBufferData(GL_ARRAY_BUFFER, sizeof(line), line, GL_STATIC_DRAW);
-  glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), nullptr);
-  glEnableVertexAttribArray(0);
-
-  return Drawable{.vao = vao,
-                  .vbo = vbo,
-                  .draw_mode = GL_LINE_STRIP,
-                  .vertex_count = static_cast<int>(line.size()) / 2};
-}
-
 auto get_delta() -> double {
   double currentTime = glfwGetTime();
   static double lastTime = currentTime;
@@ -285,7 +166,7 @@ auto main(void) -> int {
   glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
 
   /* Create a windowed mode window and its OpenGL context */
-  GLFWwindow *window = glfwCreateWindow(640, 480, WINDOW_TITLE, NULL, NULL);
+  GLFWwindow *window = glfwCreateWindow(640, 480, "Graphark", NULL, NULL);
   if (!window) {
     glfwTerminate();
     return -1;
@@ -309,8 +190,8 @@ auto main(void) -> int {
           .or_else(print_err_and_abort_execution<GLuint>)
           .value();
 
-  const Drawable axis = get_axis_drawable();
-  const Drawable grid = get_grid_drawable();
+  const graphark::Drawable axis = graphark::elements::get_axis_drawable();
+  const graphark::Drawable grid = graphark::elements::get_grid_drawable();
 
   glUseProgram(program);
 
@@ -336,13 +217,31 @@ auto main(void) -> int {
   /* Loop until the user closes the window */
   double time_elapsed = 0.0;
   auto func_index = 0;
-  const Drawable lineas[] = {
-      get_function_line_drawable([](float x) { return x; }),
-      get_function_line_drawable([](float x) { return x / 2; }),
-      get_function_line_drawable([](float x) { return x * x; })};
+  const graphark::Drawable lineas[] = {
+      // get_function_line_drawable([](float x) { return x; })
+      // get_function_line_drawable([](float x) { return x / 2; }),
+      graphark::elements::get_function_line_drawable_from_str("x * x", -10, 10,
+                                                              10),
+      graphark::elements::get_function_line_drawable_from_str("x", -10, 10, 10)
+      // graphark::elements::get_function_line_drawable_from_str("x", -10.0f,
+      //                                                         10.0f, 100)
+      // get_function_line_drawable_from_str("2x + 3")
+      // graphark::elements::get_function_line_drawable_from_str(
+      //     "(x^(2x) * (x^x)) + 1", -10.0f, 10.0f),
+      // graphark::elements::get_function_line_drawable_from_str(
+      //     "(x^(2x) * (x^x)) + 2", -10.0f, 10.0f),
+      // graphark::elements::get_function_line_drawable_from_str(
+      //     "(x^(2x) * (x^x)) + 3", -10.0f, 10.0f),
+      // graphark::elements::get_function_line_drawable_from_str(
+      //     "(x^(2x) * (x^x)) + 4", -10.0f, 10.0f),
+      // graphark::elements::get_function_line_drawable_from_str(
+      //     "(x^(2x) * (x^x)) + 5", -10.0f, 10.0f)
+      // get_function_line_drawable_from_str("abs(sin(x))+5 e^(-x^(100))
+      // cos(x)")
+      // get_function_line_drawable([](float x) { return x * x; })
+  };
   while (!glfwWindowShouldClose(window)) {
     time_elapsed += get_delta();
-    std::cout << "Delta time: " << get_delta() << std::endl;
 
     if (time_elapsed >= 1.0) {
       func_index++;
@@ -351,7 +250,7 @@ auto main(void) -> int {
       }
       time_elapsed = 0.0;
     }
-    const Drawable linea = lineas[func_index];
+    const graphark::Drawable linea = lineas[func_index];
     /* Render here */
     glClear(GL_COLOR_BUFFER_BIT);
 
