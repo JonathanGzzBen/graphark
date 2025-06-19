@@ -2,26 +2,24 @@
 
 namespace graphark::elements {
 
-template <typename T>
-static auto map_linear(T value, T in_min, T in_max, T out_min, T out_max) -> T {
-  return ((value - in_min) / (in_max - in_min)) * (out_max - out_min) + out_min;
-}
-
-static auto map_to_opengl_coordinates(float value, float x_min,
-                                      float x_max) -> float {
-  return map_linear<float>(value, x_min, x_max, -1.0f, 1.0f);
-}
-
-auto get_axis_drawable() -> graphark::Drawable {
+auto get_axis_drawable(const Camera &cam) -> graphark::Drawable {
   std::vector<float> line{};
-  line.push_back(-1.0f);
-  line.push_back(0.0f);
-  line.push_back(1.0f);
-  line.push_back(0.0f);
-  line.push_back(0.0f);
-  line.push_back(-1.0f);
-  line.push_back(0.0f);
-  line.push_back(1.0f);
+
+  // Vertical line
+  if (-1.0f <= cam.normY(0.0f) && cam.normY(0.0f) <= 1.0f) {
+    line.push_back(-1.0f);
+    line.push_back(cam.normY(0.0f));
+    line.push_back(1.0f);
+    line.push_back(cam.normY(0.0f));
+  }
+
+  // Horizontal line
+  if (-1.0f <= cam.normX(0.0f) && cam.normX(0.0f) <= 1.0f) {
+    line.push_back(cam.normX(0.0f));
+    line.push_back(-1.0f);
+    line.push_back(cam.normX(0.0f));
+    line.push_back(1.0f);
+  }
 
   unsigned int vao;
   glCreateVertexArrays(1, &vao);
@@ -42,22 +40,28 @@ auto get_axis_drawable() -> graphark::Drawable {
                             .vertex_count = static_cast<int>(line.size()) / 2};
 }
 
-auto get_grid_drawable() -> graphark::Drawable {
+auto get_grid_drawable(const Camera &cam) -> graphark::Drawable {
   std::vector<float> vertices{};
-  auto func = [](float x) { return x; };
-
+  float step = 1.0f;
   // Horizontal lines
-  for (int y_i = -10; y_i <= 10; y_i++) {
+  for (float y = std::floor(cam.minY()); y <= cam.maxY(); y += step) {
+    if (y < cam.minY() || cam.maxY() < y)
+      continue;
+    float ny = cam.normY(y);
     vertices.push_back(-1.0f);
-    vertices.push_back(static_cast<float>(y_i) * 0.1f);
+    vertices.push_back(ny);
     vertices.push_back(1.0f);
-    vertices.push_back(static_cast<float>(y_i) * 0.1f);
+    vertices.push_back(ny);
   }
+
   // Vertical lines
-  for (int x_i = -10; x_i <= 10; x_i++) {
-    vertices.push_back(static_cast<float>(x_i) * 0.1f);
+  for (float x = std::floor(cam.minX()); x <= cam.maxX(); x += step) {
+    if (x < cam.minX() || cam.maxX() < x)
+      continue;
+    float nx = cam.normX(x);
+    vertices.push_back(nx);
     vertices.push_back(-1.0f);
-    vertices.push_back(static_cast<float>(x_i) * 0.1f);
+    vertices.push_back(nx);
     vertices.push_back(1.0f);
   }
 
@@ -71,7 +75,6 @@ auto get_grid_drawable() -> graphark::Drawable {
 
   glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float),
                vertices.data(), GL_STATIC_DRAW);
-  // glBufferData(GL_ARRAY_BUFFER, sizeof(line), line, GL_STATIC_DRAW);
   glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), nullptr);
   glEnableVertexAttribArray(0);
 
@@ -83,16 +86,15 @@ auto get_grid_drawable() -> graphark::Drawable {
 }
 
 auto get_function_line_drawable(const std::function<float(float)> &func,
-                                float x_min,
-                                float x_max) -> graphark::Drawable {
-
+                                const Camera &cam) -> graphark::Drawable {
   std::vector<float> line{};
 
-  float x = x_min;
-  while (x <= x_max) {
+  float x = cam.minX();
+  while (x <= cam.maxX()) {
     float y = func(x);
-    line.push_back(map_to_opengl_coordinates(x, -10.0f, 10.0f));
-    line.push_back(map_to_opengl_coordinates(y, -10.0f, 10.0f));
+
+    line.push_back(cam.normX(x));
+    line.push_back(cam.normY(y));
     x += 0.1f;
   }
 
@@ -106,7 +108,6 @@ auto get_function_line_drawable(const std::function<float(float)> &func,
 
   glBufferData(GL_ARRAY_BUFFER, line.size() * sizeof(float), line.data(),
                GL_STATIC_DRAW);
-  // glBufferData(GL_ARRAY_BUFFER, sizeof(line), line, GL_STATIC_DRAW);
   glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), nullptr);
   glEnableVertexAttribArray(0);
 
@@ -117,19 +118,18 @@ auto get_function_line_drawable(const std::function<float(float)> &func,
 }
 
 auto get_function_line_drawable_from_str(
-    const std::string &expression_str, const int x_min, const int x_max,
+    const std::string &expression_str, const Camera &cam,
     const int n_subdivisions) -> graphark::Drawable {
 
   std::vector<float> line{};
 
   graphark::FunctionEvaluator<float> evaluator(expression_str);
-  for (int x_i = x_min * n_subdivisions; x_i <= x_max * n_subdivisions; x_i++) {
+  for (int x_i = cam.minX() * n_subdivisions;
+       x_i <= cam.maxX() * n_subdivisions; x_i++) {
     float x = x_i * (1.0f / static_cast<float>(n_subdivisions));
     float y = evaluator.evaluate(x);
-    line.push_back(map_to_opengl_coordinates(x, static_cast<float>(x_min),
-                                             static_cast<float>(x_max)));
-    line.push_back(map_to_opengl_coordinates(y, static_cast<float>(x_min),
-                                             static_cast<float>(x_max)));
+    line.push_back(cam.normX(x));
+    line.push_back(cam.normY(y));
   }
 
   unsigned int vao;
@@ -142,7 +142,6 @@ auto get_function_line_drawable_from_str(
 
   glBufferData(GL_ARRAY_BUFFER, line.size() * sizeof(float), line.data(),
                GL_STATIC_DRAW);
-  // glBufferData(GL_ARRAY_BUFFER, sizeof(line), line, GL_STATIC_DRAW);
   glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), nullptr);
   glEnableVertexAttribArray(0);
 

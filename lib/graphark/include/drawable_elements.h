@@ -2,23 +2,24 @@
 #define DRAWABLE_ELEMENTS_H
 
 #include <GL/glew.h>
-
-#include "drawable.h"
-#include "function_evaluator.h"
 #include <functional>
 #include <vector>
 
+#include "camera.h"
+#include "drawable.h"
+#include "function_evaluator.h"
+
 namespace graphark::elements {
 
-auto get_axis_drawable() -> graphark::Drawable;
+auto get_axis_drawable(const Camera &cam) -> graphark::Drawable;
 
-auto get_grid_drawable() -> graphark::Drawable;
+auto get_grid_drawable(const Camera &cam) -> graphark::Drawable;
 
 auto get_function_line_drawable(const std::function<float(float)> &func,
-                                float x_min, float x_max) -> graphark::Drawable;
+                                const Camera &cam) -> graphark::Drawable;
 
 auto get_function_line_drawable_from_str(
-    const std::string &expression_str, const int x_min, const int x_max,
+    const std::string &expression_str, const Camera &cam,
     const int n_subdivisions) -> graphark::Drawable;
 
 } // namespace graphark::elements

@@ -10,6 +10,7 @@
 #include <string>
 #include <tl/expected.hpp>
 
+#include "camera.h"
 #include "drawable.h"
 #include "drawable_elements.h"
 #include "error.h"
@@ -87,9 +88,6 @@ auto main(void) -> int {
           .or_else(print_err_and_abort_execution<graphark::Program>)
           .value();
 
-  const graphark::Drawable axis = graphark::elements::get_axis_drawable();
-  const graphark::Drawable grid = graphark::elements::get_grid_drawable();
-
   program.Use();
 
   const float aspect_ratio = get_aspect_ratio(window)
@@ -111,32 +109,76 @@ auto main(void) -> int {
   // set_uniform_matrix(program, "mModel", m_model)
   //     .or_else(print_err_and_abort_execution<void>);
 
-  /* Loop until the user closes the window */
-  double time_elapsed = 0.0;
-  auto func_index = 0;
-  const graphark::Drawable lineas[] = {
-      graphark::elements::get_function_line_drawable_from_str("x * x", -10, 10,
-                                                              10),
-      graphark::elements::get_function_line_drawable_from_str("x", -10, 10,
-                                                              10)};
-  while (!glfwWindowShouldClose(window)) {
-    time_elapsed += get_delta();
+  // Configure input
+  Camera cam;
+  glfwSetInputMode(window, GLFW_STICKY_KEYS, GLFW_TRUE);
 
-    if (time_elapsed >= 1.0) {
+  const auto handle_input = [&window, &cam](float delta_time) {
+    const auto is_pressed = [&window](int key) {
+      return glfwGetKey(window, key) == GLFW_PRESS;
+    };
+
+    float pan_speed = cam.width() * 0.5f;
+    float zoom_factor = 2.5f;
+
+    if (is_pressed(GLFW_KEY_LEFT)) {
+      cam.pan(-pan_speed * delta_time, 0.0f);
+    }
+    if (is_pressed(GLFW_KEY_RIGHT)) {
+      cam.pan(pan_speed * delta_time, 0.0f);
+    }
+    if (is_pressed(GLFW_KEY_UP)) {
+      cam.pan(0.0f, pan_speed * delta_time);
+    }
+    if (is_pressed(GLFW_KEY_DOWN)) {
+      cam.pan(0.0f, -pan_speed * delta_time);
+    }
+    if (is_pressed(GLFW_KEY_EQUAL)) {
+      cam.zoom(std::pow(1.0 / static_cast<double>(zoom_factor), delta_time));
+    }
+    if (is_pressed(GLFW_KEY_MINUS)) {
+      cam.zoom(std::pow(zoom_factor, delta_time));
+    }
+  };
+
+  // End input
+
+  /* Loop until the user closes the window */
+  auto func_index = 0;
+  // const graphark::Drawable lineas[] = {
+  //     graphark::elements::get_function_line_drawable_from_str("x * x", -10,
+  //     10,
+  //                                                             10),
+  //     graphark::elements::get_function_line_drawable_from_str("x", -10, 10,
+  //                                                             10)};
+
+  double delta_time = 0.0;
+  double function_change_timer_accumulator = 0.0f;
+  while (!glfwWindowShouldClose(window)) {
+    delta_time = get_delta();
+    handle_input(static_cast<float>(delta_time));
+    function_change_timer_accumulator += delta_time;
+
+    const graphark::Drawable axis = graphark::elements::get_axis_drawable(cam);
+    const graphark::Drawable grid = graphark::elements::get_grid_drawable(cam);
+    const graphark::Drawable lineas[] = {
+        graphark::elements::get_function_line_drawable_from_str("x * x", cam,
+                                                                10)};
+    // graphark::elements::get_function_line_drawable_from_str("x * x", min_x,
+    //                                                         max_x, 10)};
+    // graphark::elements::get_function_line_drawable_from_str("x", min_x,
+    // max_x, 10)};
+
+    if (function_change_timer_accumulator >= 1.0) {
       func_index++;
       if (func_index >= (sizeof(lineas) / sizeof(lineas[0]))) {
         func_index = 0;
       }
-      time_elapsed = 0.0;
+      function_change_timer_accumulator = 0.0;
     }
     const graphark::Drawable linea = lineas[func_index];
     /* Render here */
     glClear(GL_COLOR_BUFFER_BIT);
-
-    program.SetUniformVector("vColor", glm::vec4(1.0, 0.5, 0.5, 1.0))
-        .or_else(print_err_and_abort_execution<void>);
-    glBindVertexArray(linea.vao);
-    glDrawArrays(linea.draw_mode, 0, linea.vertex_count);
 
     program.SetUniformVector("vColor", glm::vec4(0.5, 0.5, 0.5, 1.0))
         .or_else(print_err_and_abort_execution<void>);
@@ -147,6 +189,11 @@ auto main(void) -> int {
         .or_else(print_err_and_abort_execution<void>);
     glBindVertexArray(axis.vao);
     glDrawArrays(axis.draw_mode, 0, axis.vertex_count);
+
+    program.SetUniformVector("vColor", glm::vec4(1.0, 0.5, 0.5, 1.0))
+        .or_else(print_err_and_abort_execution<void>);
+    glBindVertexArray(linea.vao);
+    glDrawArrays(linea.draw_mode, 0, linea.vertex_count);
 
     /* Swap front and back buffers */
     glfwSwapBuffers(window);
