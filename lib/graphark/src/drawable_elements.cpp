@@ -30,7 +30,7 @@ auto get_grid_drawable(const Camera &cam) -> graphark::Drawable2D {
   // Horizontal lines
   for (int y = static_cast<int>(std::floor(cam.minY()));
        y <= static_cast<int>(cam.maxY()); y++) {
-    if (y < cam.minY())
+    if (y < cam.minY() || cam.maxY() < y)
       continue;
     float ny = cam.normY(static_cast<float>(y));
     vertices.push_back(-1.0f);
@@ -41,7 +41,7 @@ auto get_grid_drawable(const Camera &cam) -> graphark::Drawable2D {
   // Vertical lines
   for (int x = static_cast<int>(std::floor(cam.minX()));
        x <= static_cast<int>(cam.maxX()); x++) {
-    if (x < cam.minX())
+    if (x < cam.minX() || cam.maxX() < x)
       continue;
     float nx = cam.normX(static_cast<float>(x));
     vertices.push_back(nx);
