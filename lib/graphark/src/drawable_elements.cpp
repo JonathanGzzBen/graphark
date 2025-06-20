@@ -62,14 +62,12 @@ auto get_function_line_drawable_from_str(
   graphark::FunctionEvaluator<float> evaluator(expression_str);
 
   float step_size = 1.0f / n_subdivisions;
-  size_t num_steps =
-      static_cast<size_t>(std::ceil(cam.maxX() - cam.minX()) / step_size);
-
-  for (size_t i = 0; i <= num_steps; i++) {
-    float x = cam.minX() + (i * step_size);
+  float x = cam.minX();
+  while (x <= cam.maxX()) {
     float y = evaluator.evaluate(x);
     line.push_back(cam.normX(x));
     line.push_back(cam.normY(y));
+    x += step_size;
   }
 
   return graphark::Drawable2D(line, GL_LINE_STRIP);
