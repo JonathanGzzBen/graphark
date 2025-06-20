@@ -153,7 +153,7 @@ auto main(int argc, char *argv[]) -> int {
         graphark::elements::get_grid_drawable(cam);
     const graphark::Drawable2D function_line =
         graphark::elements::get_function_line_drawable_from_str(input_function,
-                                                                cam, 10);
+                                                                cam, 100);
     /* Render here */
     glClear(GL_COLOR_BUFFER_BIT);
 

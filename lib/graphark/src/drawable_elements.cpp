@@ -26,12 +26,11 @@ auto get_axis_drawable(const Camera &cam) -> graphark::Drawable2D {
 
 auto get_grid_drawable(const Camera &cam) -> graphark::Drawable2D {
   std::vector<float> vertices{};
-  float step = 1.0f;
-  // Horizontal lines
-  for (float y = std::floor(cam.minY()); y <= cam.maxY(); y += step) {
-    if (y < cam.minY())
+  for (int y = static_cast<int>(std::floor(cam.minY())) * 10;
+       y <= cam.maxY() * 10; y += 10) {
+    if (y * 0.1f < cam.minY())
       continue;
-    float ny = cam.normY(y);
+    float ny = cam.normY(y * 0.1f);
     vertices.push_back(-1.0f);
     vertices.push_back(ny);
     vertices.push_back(1.0f);
@@ -39,10 +38,11 @@ auto get_grid_drawable(const Camera &cam) -> graphark::Drawable2D {
   }
 
   // Vertical lines
-  for (float x = std::floor(cam.minX()); x <= cam.maxX(); x += step) {
-    if (x < cam.minX())
+  for (int x = static_cast<int>(std::floor(cam.minX())) * 10;
+       x <= cam.maxX() * 10; x += 10) {
+    if (x * 0.1f < cam.minX())
       continue;
-    float nx = cam.normX(x);
+    float nx = cam.normX(x * 0.1f);
     vertices.push_back(nx);
     vertices.push_back(-1.0f);
     vertices.push_back(nx);
@@ -59,7 +59,7 @@ auto get_function_line_drawable_from_str(
   std::vector<float> line{};
 
   graphark::FunctionEvaluator<float> evaluator(expression_str);
-  for (int x_i = cam.minX() * n_subdivisions;
+  for (int x_i = static_cast<int>(cam.minX() * n_subdivisions);
        x_i <= cam.maxX() * n_subdivisions; x_i++) {
     float x = x_i * (1.0f / static_cast<float>(n_subdivisions));
     float y = evaluator.evaluate(x);
