@@ -118,7 +118,7 @@ auto main(void) -> int {
       return glfwGetKey(window, key) == GLFW_PRESS;
     };
 
-    float pan_speed = cam.width() * 0.5f;
+    float pan_speed = (cam.maxX() - cam.minX()) * 0.5f;
     float zoom_factor = 2.5f;
 
     if (is_pressed(GLFW_KEY_LEFT)) {
@@ -134,7 +134,8 @@ auto main(void) -> int {
       cam.pan(0.0f, -pan_speed * delta_time);
     }
     if (is_pressed(GLFW_KEY_EQUAL)) {
-      cam.zoom(std::pow(1.0 / static_cast<double>(zoom_factor), delta_time));
+      cam.zoom(static_cast<float>(
+          std::pow(1.0 / static_cast<double>(zoom_factor), delta_time)));
     }
     if (is_pressed(GLFW_KEY_MINUS)) {
       cam.zoom(std::pow(zoom_factor, delta_time));

@@ -34,8 +34,6 @@ public:
   auto maxX() const { return max_x; }
   auto minY() const { return min_y; }
   auto maxY() const { return max_y; }
-  auto width() const { return max_x - min_x; }
-  auto height() const { return max_y - min_y; }
 
   auto pan(float x, float y) {
     min_x += x;
@@ -45,23 +43,18 @@ public:
   }
 
   auto zoom(float factor) {
-    double cx = (min_x + max_x) / 2.0f;
-    double cy = (min_y + max_y) / 2.0f;
-    double new_width = width() * factor;
-    double new_height = height() * factor;
+    const double width = (max_x - min_x);
+    const double height = (max_y - min_y);
+    const double new_width = width * factor;
+    const double new_height = height * factor;
 
-    min_x = cx - (new_width / 2.0f);
-    max_x = cx + (new_width / 2.0f);
-    min_y = cy - (new_height / 2.0f);
-    max_y = cy + (new_height / 2.0f);
+    const double center_x = (min_x + max_x) / 2.0;
+    const double center_y = (min_y + max_y) / 2.0;
 
-    // const auto new_width = std::abs(width * factor);
-    // const auto new_height = std::abs(height * factor);
-
-    // min_x = ((new_width) / 2) * -1;
-    // max_x = ((new_width) / 2);
-    // min_y = ((new_height) / 2) * -1;
-    // max_y = ((new_height) / 2);
+    min_x = static_cast<float>(center_x - (new_width / 2.0));
+    max_x = static_cast<float>(center_x + (new_width / 2.0));
+    min_y = static_cast<float>(center_y - (new_height / 2.0));
+    max_y = static_cast<float>(center_y + (new_height / 2.0));
   }
 };
 
