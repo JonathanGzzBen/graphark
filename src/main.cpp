@@ -1,3 +1,4 @@
+#include <CLI/CLI.hpp>
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <cstdio>
@@ -50,7 +51,11 @@ auto get_delta() -> double {
   return deltaTime;
 }
 
-auto main(void) -> int {
+auto main(int argc, char *argv[]) -> int {
+  CLI::App app;
+  std::string input_function;
+  app.add_option("function", input_function, "Function to graph")->required();
+  CLI11_PARSE(app, argc, argv);
 
   /* Initialize the library */
   if (!glfwInit())
@@ -104,15 +109,8 @@ auto main(void) -> int {
   program.SetUniformMatrix("mView", m_view)
       .or_else(print_err_and_abort_execution<void>);
 
-  // const auto m_model =
-  //     glm::rotate(glm::mat4(1.0f), 0.5f, glm::vec3(0.0f, 0.0f, 1.0f));
-  // set_uniform_matrix(program, "mModel", m_model)
-  //     .or_else(print_err_and_abort_execution<void>);
-
-  // Configure input
-  Camera cam;
   glfwSetInputMode(window, GLFW_STICKY_KEYS, GLFW_TRUE);
-
+  Camera cam;
   const auto handle_input = [&window, &cam](float delta_time) {
     const auto is_pressed = [&window](int key) {
       return glfwGetKey(window, key) == GLFW_PRESS;
@@ -142,42 +140,18 @@ auto main(void) -> int {
     }
   };
 
-  // End input
-
   /* Loop until the user closes the window */
   auto func_index = 0;
-  // const graphark::Drawable lineas[] = {
-  //     graphark::elements::get_function_line_drawable_from_str("x * x", -10,
-  //     10,
-  //                                                             10),
-  //     graphark::elements::get_function_line_drawable_from_str("x", -10, 10,
-  //                                                             10)};
-
   double delta_time = 0.0;
-  double function_change_timer_accumulator = 0.0f;
   while (!glfwWindowShouldClose(window)) {
     delta_time = get_delta();
     handle_input(static_cast<float>(delta_time));
-    function_change_timer_accumulator += delta_time;
 
     const graphark::Drawable axis = graphark::elements::get_axis_drawable(cam);
     const graphark::Drawable grid = graphark::elements::get_grid_drawable(cam);
-    const graphark::Drawable lineas[] = {
-        graphark::elements::get_function_line_drawable_from_str("x * x", cam,
-                                                                10)};
-    // graphark::elements::get_function_line_drawable_from_str("x * x", min_x,
-    //                                                         max_x, 10)};
-    // graphark::elements::get_function_line_drawable_from_str("x", min_x,
-    // max_x, 10)};
-
-    if (function_change_timer_accumulator >= 1.0) {
-      func_index++;
-      if (func_index >= (sizeof(lineas) / sizeof(lineas[0]))) {
-        func_index = 0;
-      }
-      function_change_timer_accumulator = 0.0;
-    }
-    const graphark::Drawable linea = lineas[func_index];
+    const graphark::Drawable function_line =
+        graphark::elements::get_function_line_drawable_from_str(input_function,
+                                                                cam, 10);
     /* Render here */
     glClear(GL_COLOR_BUFFER_BIT);
 
@@ -193,8 +167,8 @@ auto main(void) -> int {
 
     program.SetUniformVector("vColor", glm::vec4(1.0, 0.5, 0.5, 1.0))
         .or_else(print_err_and_abort_execution<void>);
-    glBindVertexArray(linea.vao);
-    glDrawArrays(linea.draw_mode, 0, linea.vertex_count);
+    glBindVertexArray(function_line.vao);
+    glDrawArrays(function_line.draw_mode, 0, function_line.vertex_count);
 
     /* Swap front and back buffers */
     glfwSwapBuffers(window);

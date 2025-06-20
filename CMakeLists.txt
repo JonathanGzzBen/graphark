@@ -33,7 +33,14 @@ FetchContent_Declare(
   GIT_TAG 292eff8bd8ee230a7df1d6a1c00c4ea0eb2f0362 # v1.1.0
 )
 
-FetchContent_MakeAvailable(glfw glew glm expected)
+FetchContent_Declare(
+  cli11_proj
+  QUIET
+  GIT_REPOSITORY https://github.com/CLIUtils/CLI11.git
+  GIT_TAG v2.3.2
+)
+
+FetchContent_MakeAvailable(glfw glew glm expected cli11_proj)
 
 set(graphark_lib "${PROJECT_NAME}_lib")
 add_library(${graphark_lib}
@@ -54,7 +61,7 @@ endif()
 
 set(graphark "${PROJECT_NAME}")
 add_executable(${graphark} src/main.cpp)
-target_link_libraries(${graphark} ${graphark_lib} glfw libglew_static glm::glm expected)
+target_link_libraries(${graphark} ${graphark_lib} glfw libglew_static glm::glm expected CLI11::CLI11)
 target_include_directories(${graphark} PRIVATE ${CMAKE_SOURCE_DIR}/include)
 set_target_properties(${graphark} PROPERTIES CXX_STANDARD 23)
 set_target_properties(${graphark} PROPERTIES CXX_STANDARD_REQUIRED ON)
