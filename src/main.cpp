@@ -12,7 +12,7 @@
 #include <tl/expected.hpp>
 
 #include "camera.h"
-#include "drawable.h"
+#include "drawable2d.h"
 #include "drawable_elements.h"
 #include "error.h"
 #include "function_evaluator.h"
@@ -147,9 +147,11 @@ auto main(int argc, char *argv[]) -> int {
     delta_time = get_delta();
     handle_input(static_cast<float>(delta_time));
 
-    const graphark::Drawable axis = graphark::elements::get_axis_drawable(cam);
-    const graphark::Drawable grid = graphark::elements::get_grid_drawable(cam);
-    const graphark::Drawable function_line =
+    const graphark::Drawable2D axis =
+        graphark::elements::get_axis_drawable(cam);
+    const graphark::Drawable2D grid =
+        graphark::elements::get_grid_drawable(cam);
+    const graphark::Drawable2D function_line =
         graphark::elements::get_function_line_drawable_from_str(input_function,
                                                                 cam, 10);
     /* Render here */
@@ -157,18 +159,15 @@ auto main(int argc, char *argv[]) -> int {
 
     program.SetUniformVector("vColor", glm::vec4(0.5, 0.5, 0.5, 1.0))
         .or_else(print_err_and_abort_execution<void>);
-    glBindVertexArray(grid.vao);
-    glDrawArrays(grid.draw_mode, 0, grid.vertex_count);
+    grid.Draw();
 
     program.SetUniformVector("vColor", glm::vec4(1.0, 1.0, 1.0, 1.0))
         .or_else(print_err_and_abort_execution<void>);
-    glBindVertexArray(axis.vao);
-    glDrawArrays(axis.draw_mode, 0, axis.vertex_count);
+    axis.Draw();
 
     program.SetUniformVector("vColor", glm::vec4(1.0, 0.5, 0.5, 1.0))
         .or_else(print_err_and_abort_execution<void>);
-    glBindVertexArray(function_line.vao);
-    glDrawArrays(function_line.draw_mode, 0, function_line.vertex_count);
+    function_line.Draw();
 
     /* Swap front and back buffers */
     glfwSwapBuffers(window);

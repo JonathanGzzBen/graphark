@@ -2,45 +2,29 @@
 
 namespace graphark::elements {
 
-auto get_axis_drawable(const Camera &cam) -> graphark::Drawable {
-  std::vector<float> line{};
+auto get_axis_drawable(const Camera &cam) -> graphark::Drawable2D {
+  std::vector<float> lines{};
 
   // Vertical line
   if (-1.0f <= cam.normY(0.0f) && cam.normY(0.0f) <= 1.0f) {
-    line.push_back(-1.0f);
-    line.push_back(cam.normY(0.0f));
-    line.push_back(1.0f);
-    line.push_back(cam.normY(0.0f));
+    lines.push_back(-1.0f);
+    lines.push_back(cam.normY(0.0f));
+    lines.push_back(1.0f);
+    lines.push_back(cam.normY(0.0f));
   }
 
   // Horizontal line
   if (-1.0f <= cam.normX(0.0f) && cam.normX(0.0f) <= 1.0f) {
-    line.push_back(cam.normX(0.0f));
-    line.push_back(-1.0f);
-    line.push_back(cam.normX(0.0f));
-    line.push_back(1.0f);
+    lines.push_back(cam.normX(0.0f));
+    lines.push_back(-1.0f);
+    lines.push_back(cam.normX(0.0f));
+    lines.push_back(1.0f);
   }
 
-  unsigned int vao;
-  glCreateVertexArrays(1, &vao);
-  glBindVertexArray(vao);
-
-  unsigned int vbo;
-  glGenBuffers(1, &vbo);
-  glBindBuffer(GL_ARRAY_BUFFER, vbo);
-
-  glBufferData(GL_ARRAY_BUFFER, line.size() * sizeof(float), line.data(),
-               GL_STATIC_DRAW);
-  glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), nullptr);
-  glEnableVertexAttribArray(0);
-
-  return graphark::Drawable{.vao = vao,
-                            .vbo = vbo,
-                            .draw_mode = GL_LINES,
-                            .vertex_count = static_cast<int>(line.size()) / 2};
+  return graphark::Drawable2D(lines, GL_LINES);
 }
 
-auto get_grid_drawable(const Camera &cam) -> graphark::Drawable {
+auto get_grid_drawable(const Camera &cam) -> graphark::Drawable2D {
   std::vector<float> vertices{};
   float step = 1.0f;
   // Horizontal lines
@@ -65,61 +49,12 @@ auto get_grid_drawable(const Camera &cam) -> graphark::Drawable {
     vertices.push_back(1.0f);
   }
 
-  unsigned int vao;
-  glCreateVertexArrays(1, &vao);
-  glBindVertexArray(vao);
-
-  unsigned int vbo;
-  glGenBuffers(1, &vbo);
-  glBindBuffer(GL_ARRAY_BUFFER, vbo);
-
-  glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float),
-               vertices.data(), GL_STATIC_DRAW);
-  glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), nullptr);
-  glEnableVertexAttribArray(0);
-
-  return graphark::Drawable{.vao = vao,
-                            .vbo = vbo,
-                            .draw_mode = GL_LINES,
-                            .vertex_count =
-                                static_cast<int>(vertices.size()) / 2};
-}
-
-auto get_function_line_drawable(const std::function<float(float)> &func,
-                                const Camera &cam) -> graphark::Drawable {
-  std::vector<float> line{};
-
-  float x = cam.minX();
-  while (x <= cam.maxX()) {
-    float y = func(x);
-
-    line.push_back(cam.normX(x));
-    line.push_back(cam.normY(y));
-    x += 0.1f;
-  }
-
-  unsigned int vao;
-  glCreateVertexArrays(1, &vao);
-  glBindVertexArray(vao);
-
-  unsigned int vbo;
-  glGenBuffers(1, &vbo);
-  glBindBuffer(GL_ARRAY_BUFFER, vbo);
-
-  glBufferData(GL_ARRAY_BUFFER, line.size() * sizeof(float), line.data(),
-               GL_STATIC_DRAW);
-  glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), nullptr);
-  glEnableVertexAttribArray(0);
-
-  return graphark::Drawable{.vao = vao,
-                            .vbo = vbo,
-                            .draw_mode = GL_LINE_STRIP,
-                            .vertex_count = static_cast<int>(line.size()) / 2};
+  return graphark::Drawable2D(vertices, GL_LINES);
 }
 
 auto get_function_line_drawable_from_str(
     const std::string &expression_str, const Camera &cam,
-    const int n_subdivisions) -> graphark::Drawable {
+    const int n_subdivisions) -> graphark::Drawable2D {
 
   std::vector<float> line{};
 
@@ -131,24 +66,7 @@ auto get_function_line_drawable_from_str(
     line.push_back(cam.normX(x));
     line.push_back(cam.normY(y));
   }
-
-  unsigned int vao;
-  glCreateVertexArrays(1, &vao);
-  glBindVertexArray(vao);
-
-  unsigned int vbo;
-  glGenBuffers(1, &vbo);
-  glBindBuffer(GL_ARRAY_BUFFER, vbo);
-
-  glBufferData(GL_ARRAY_BUFFER, line.size() * sizeof(float), line.data(),
-               GL_STATIC_DRAW);
-  glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), nullptr);
-  glEnableVertexAttribArray(0);
-
-  return graphark::Drawable{.vao = vao,
-                            .vbo = vbo,
-                            .draw_mode = GL_LINE_STRIP,
-                            .vertex_count = static_cast<int>(line.size()) / 2};
+  return graphark::Drawable2D(line, GL_LINE_STRIP);
 }
 
 } // namespace graphark::elements
