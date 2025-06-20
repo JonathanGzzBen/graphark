@@ -29,7 +29,7 @@ auto get_grid_drawable(const Camera &cam) -> graphark::Drawable2D {
   float step = 1.0f;
   // Horizontal lines
   for (float y = std::floor(cam.minY()); y <= cam.maxY(); y += step) {
-    if (y < cam.minY() || cam.maxY() < y)
+    if (y < cam.minY())
       continue;
     float ny = cam.normY(y);
     vertices.push_back(-1.0f);
@@ -40,7 +40,7 @@ auto get_grid_drawable(const Camera &cam) -> graphark::Drawable2D {
 
   // Vertical lines
   for (float x = std::floor(cam.minX()); x <= cam.maxX(); x += step) {
-    if (x < cam.minX() || cam.maxX() < x)
+    if (x < cam.minX())
       continue;
     float nx = cam.normX(x);
     vertices.push_back(nx);
