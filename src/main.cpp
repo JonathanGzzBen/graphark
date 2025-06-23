@@ -104,14 +104,19 @@ auto main(int argc, char *argv[]) -> int {
   program.SetUniformMatrix("mProjection", m_projection)
       .or_else(print_err_and_abort_execution<void>);
 
-  const auto m_view =
-      glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -2.5f));
-  program.SetUniformMatrix("mView", m_view)
-      .or_else(print_err_and_abort_execution<void>);
+  float camera_x = 0.0f;
+  float camera_y = 0.0f;
+  float camera_z = -2.5f;
+
+  float rotation_x = 0.0f;
+  float rotation_y = 0.0f;
+  float rotation_z = 0.0f;
 
   glfwSetInputMode(window, GLFW_STICKY_KEYS, GLFW_TRUE);
   Camera cam;
-  const auto handle_input = [&window, &cam](float delta_time) {
+  const auto handle_input = [&window, &cam, &camera_x, &camera_y, &camera_z,
+                             &rotation_x, &rotation_y,
+                             &rotation_z](float delta_time) {
     const auto is_pressed = [&window](int key) {
       return glfwGetKey(window, key) == GLFW_PRESS;
     };
@@ -138,6 +143,44 @@ auto main(int argc, char *argv[]) -> int {
     if (is_pressed(GLFW_KEY_MINUS)) {
       cam.zoom(std::pow(zoom_factor, delta_time));
     }
+
+    if (is_pressed(GLFW_KEY_S)) {
+      camera_z -= 1.0f * delta_time;
+    }
+    if (is_pressed(GLFW_KEY_W)) {
+      camera_z += 1.0f * delta_time;
+    }
+    if (is_pressed(GLFW_KEY_A)) {
+      camera_x -= 1.0f * delta_time;
+    }
+    if (is_pressed(GLFW_KEY_D)) {
+      camera_x += 1.0f * delta_time;
+    }
+    if (is_pressed(GLFW_KEY_LEFT_CONTROL)) {
+      camera_y += 1.0f * delta_time;
+    }
+    if (is_pressed(GLFW_KEY_SPACE)) {
+      camera_y -= 1.0f * delta_time;
+    }
+
+    if (is_pressed(GLFW_KEY_J)) {
+      rotation_y -= 15.0f * delta_time;
+    }
+    if (is_pressed(GLFW_KEY_L)) {
+      rotation_y += 15.0f * delta_time;
+    }
+    if (is_pressed(GLFW_KEY_I)) {
+      rotation_x += 15.0f * delta_time;
+    }
+    if (is_pressed(GLFW_KEY_K)) {
+      rotation_x -= 15.0f * delta_time;
+    }
+    if (is_pressed(GLFW_KEY_U)) {
+      rotation_z += 15.0f * delta_time;
+    }
+    if (is_pressed(GLFW_KEY_O)) {
+      rotation_z -= 15.0f * delta_time;
+    }
   };
 
   /* Loop until the user closes the window */
@@ -146,6 +189,22 @@ auto main(int argc, char *argv[]) -> int {
   while (!glfwWindowShouldClose(window)) {
     delta_time = get_delta();
     handle_input(static_cast<float>(delta_time));
+
+    auto m_model = glm::mat4(1.0f);
+    m_model = glm::rotate(m_model, glm::radians(rotation_x),
+                          glm::vec3(1.0f, 0.0f, 0.0f));
+    m_model = glm::rotate(m_model, glm::radians(rotation_y),
+                          glm::vec3(0.0f, 1.0f, 0.0f));
+    m_model = glm::rotate(m_model, glm::radians(rotation_z),
+                          glm::vec3(0.0f, 0.0f, 1.0f));
+
+    program.SetUniformMatrix("mModel", m_model)
+        .or_else(print_err_and_abort_execution<void>);
+
+    const auto m_view = glm::translate(glm::mat4(1.0f),
+                                       glm::vec3(camera_x, camera_y, camera_z));
+    program.SetUniformMatrix("mView", m_view)
+        .or_else(print_err_and_abort_execution<void>);
 
     const graphark::Drawable2D axis =
         graphark::elements::get_axis_drawable(cam);
