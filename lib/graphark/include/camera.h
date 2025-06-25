@@ -6,55 +6,40 @@
 class Camera {
 
 private:
-  float min_x = -10.0f;
-  float max_x = 10.0f;
-  float min_y = -10.0f;
-  float max_y = 10.0f;
-
-  template <typename T>
-  static auto map_linear(T value, T in_min, T in_max, T out_min,
-                         T out_max) -> T {
-    return ((value - in_min) / (in_max - in_min)) * (out_max - out_min) +
-           out_min;
-  }
-
-  static auto map_to_opengl_coordinates(float value, float x_min,
-                                        float x_max) -> float {
-    return map_linear<float>(value, x_min, x_max, -1.0f, 1.0f);
-  }
+  float x_min_;
+  float x_max_;
+  float y_min_;
+  float y_max_;
 
 public:
-  auto normX(float x) const {
-    return map_to_opengl_coordinates(x, min_x, max_x);
-  }
-  auto normY(float y) const {
-    return map_to_opengl_coordinates(y, min_y, max_y);
-  }
-  auto minX() const { return min_x; }
-  auto maxX() const { return max_x; }
-  auto minY() const { return min_y; }
-  auto maxY() const { return max_y; }
+  Camera(float x_min, float x_max, float y_min, float y_max)
+      : x_min_{x_min}, x_max_{x_max}, y_min_{y_min}, y_max_{y_max} {}
+
+  auto minX() const { return x_min_; }
+  auto maxX() const { return x_max_; }
+  auto minY() const { return y_min_; }
+  auto maxY() const { return y_max_; }
 
   auto pan(float x, float y) {
-    min_x += x;
-    max_x += x;
-    min_y += y;
-    max_y += y;
+    x_min_ += x;
+    x_max_ += x;
+    y_min_ += y;
+    y_max_ += y;
   }
 
   auto zoom(float factor) {
-    const double width = (max_x - min_x);
-    const double height = (max_y - min_y);
+    const double width = (x_max_ - x_min_);
+    const double height = (y_max_ - y_min_);
     const double new_width = width * factor;
     const double new_height = height * factor;
 
-    const double center_x = (min_x + max_x) / 2.0;
-    const double center_y = (min_y + max_y) / 2.0;
+    const double center_x = (x_min_ + x_max_) / 2.0;
+    const double center_y = (y_min_ + y_max_) / 2.0;
 
-    min_x = static_cast<float>(center_x - (new_width / 2.0));
-    max_x = static_cast<float>(center_x + (new_width / 2.0));
-    min_y = static_cast<float>(center_y - (new_height / 2.0));
-    max_y = static_cast<float>(center_y + (new_height / 2.0));
+    x_min_ = static_cast<float>(center_x - (new_width / 2.0));
+    x_max_ = static_cast<float>(center_x + (new_width / 2.0));
+    y_min_ = static_cast<float>(center_y - (new_height / 2.0));
+    y_max_ = static_cast<float>(center_y + (new_height / 2.0));
   }
 };
 

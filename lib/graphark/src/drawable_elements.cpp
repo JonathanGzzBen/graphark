@@ -6,20 +6,16 @@ auto get_axis_drawable(const Camera &cam) -> graphark::Drawable2D {
   std::vector<float> lines{};
 
   // Vertical line
-  if (-1.0f <= cam.normY(0.0f) && cam.normY(0.0f) <= 1.0f) {
-    lines.push_back(-1.0f);
-    lines.push_back(cam.normY(0.0f));
-    lines.push_back(1.0f);
-    lines.push_back(cam.normY(0.0f));
-  }
+  lines.push_back(cam.minX());
+  lines.push_back(0.0f);
+  lines.push_back(cam.maxX());
+  lines.push_back(0.0f);
 
   // Horizontal line
-  if (-1.0f <= cam.normX(0.0f) && cam.normX(0.0f) <= 1.0f) {
-    lines.push_back(cam.normX(0.0f));
-    lines.push_back(-1.0f);
-    lines.push_back(cam.normX(0.0f));
-    lines.push_back(1.0f);
-  }
+  lines.push_back(0.0f);
+  lines.push_back(cam.minY());
+  lines.push_back(0.0f);
+  lines.push_back(cam.maxY());
 
   return graphark::Drawable2D(lines, GL_LINES);
 }
@@ -27,27 +23,23 @@ auto get_axis_drawable(const Camera &cam) -> graphark::Drawable2D {
 auto get_grid_drawable(const Camera &cam) -> graphark::Drawable2D {
   std::vector<float> vertices{};
 
-  // Horizontal lines
-  for (int y = static_cast<int>(std::floor(cam.minY()));
-       y <= static_cast<int>(cam.maxY()); y++) {
-    if (y < cam.minY() || cam.maxY() < y)
-      continue;
-    float ny = cam.normY(static_cast<float>(y));
-    vertices.push_back(-1.0f);
-    vertices.push_back(ny);
-    vertices.push_back(1.0f);
-    vertices.push_back(ny);
-  }
   // Vertical lines
-  for (int x = static_cast<int>(std::floor(cam.minX()));
-       x <= static_cast<int>(cam.maxX()); x++) {
-    if (x < cam.minX() || cam.maxX() < x)
-      continue;
-    float nx = cam.normX(static_cast<float>(x));
-    vertices.push_back(nx);
-    vertices.push_back(-1.0f);
-    vertices.push_back(nx);
-    vertices.push_back(1.0f);
+  int x_start = static_cast<int>(std::floor(cam.minX()));
+  int x_end = static_cast<int>(std::ceil(cam.maxX()));
+  for (int x = x_start; x <= x_end; x++) {
+    vertices.push_back(static_cast<float>(x));
+    vertices.push_back(cam.minY());
+    vertices.push_back(static_cast<float>(x));
+    vertices.push_back(cam.maxY());
+  }
+  // Horizontal lines
+  int y_start = static_cast<int>(std::floor(cam.minY()));
+  int y_end = static_cast<int>(std::ceil(cam.maxY()));
+  for (int y = y_start; y <= y_end; y++) {
+    vertices.push_back(cam.minX());
+    vertices.push_back(static_cast<float>(y));
+    vertices.push_back(cam.maxX());
+    vertices.push_back(static_cast<float>(y));
   }
 
   return graphark::Drawable2D(vertices, GL_LINES);
@@ -65,8 +57,8 @@ auto get_function_line_drawable_from_str(
   float x = cam.minX();
   while (x <= cam.maxX()) {
     float y = evaluator.evaluate(x);
-    line.push_back(cam.normX(x));
-    line.push_back(cam.normY(y));
+    line.push_back(x);
+    line.push_back(y);
     x += step_size;
   }
 
