@@ -7,6 +7,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/mat4x4.hpp>
 #include <iostream>
+#include <ranges>
 #include <sstream>
 #include <string>
 #include <tl/expected.hpp>
@@ -53,9 +54,24 @@ auto get_delta() -> double {
 
 auto main(int argc, char *argv[]) -> int {
   CLI::App app;
-  std::string input_function;
-  app.add_option("function", input_function, "Function to graph")->required();
+  std::string input_functions;
+  app.add_option("functions", input_functions,
+                 "Functions to graph separated by comma")
+      ->required();
+
   CLI11_PARSE(app, argc, argv);
+
+  const auto functions = ([&input_functions]() {
+    auto functions_view =
+        std::string_view(input_functions) |
+        std::views::filter([](const auto s) { return s != ' '; }) |
+        std::views::split(',');
+    std::vector<std::string> result;
+    for (const auto &function : functions_view) {
+      result.emplace_back(function.begin(), function.end());
+    }
+    return result;
+  })();
 
   /* Initialize the library */
   if (!glfwInit())
@@ -130,6 +146,8 @@ auto main(int argc, char *argv[]) -> int {
   auto func_index = 0;
   double delta_time = 0.0;
   while (!glfwWindowShouldClose(window)) {
+    glClear(GL_COLOR_BUFFER_BIT);
+
     delta_time = get_delta();
     handle_input(static_cast<float>(delta_time));
 
@@ -138,16 +156,12 @@ auto main(int argc, char *argv[]) -> int {
     program.SetUniformMatrix("mProjection", m_projection)
         .or_else(print_err_and_abort_execution<void>);
 
-    const graphark::Drawable2D axis =
-        graphark::elements::get_axis_drawable(cam);
     const graphark::Drawable2D grid =
         graphark::elements::get_grid_drawable(cam);
-    const graphark::Drawable2D function_line =
-        graphark::elements::get_function_line_drawable_from_str(input_function,
-                                                                cam, 100);
-    /* Render here */
-    glClear(GL_COLOR_BUFFER_BIT);
+    const graphark::Drawable2D axis =
+        graphark::elements::get_axis_drawable(cam);
 
+    /* Render here */
     program.SetUniformVector("vColor", glm::vec4(0.5, 0.5, 0.5, 1.0))
         .or_else(print_err_and_abort_execution<void>);
     grid.Draw();
@@ -158,7 +172,12 @@ auto main(int argc, char *argv[]) -> int {
 
     program.SetUniformVector("vColor", glm::vec4(1.0, 0.5, 0.5, 1.0))
         .or_else(print_err_and_abort_execution<void>);
-    function_line.Draw();
+    for (const auto function : functions) {
+      const graphark::Drawable2D function_line =
+          graphark::elements::get_function_line_drawable_from_str(function, cam,
+                                                                  10);
+      function_line.Draw();
+    }
 
     /* Swap front and back buffers */
     glfwSwapBuffers(window);
