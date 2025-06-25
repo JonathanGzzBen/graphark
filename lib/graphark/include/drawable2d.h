@@ -38,6 +38,11 @@ public:
     glEnableVertexAttribArray(0);
   }
 
+  ~Drawable2D() {
+    glDeleteBuffers(1, &m_vbo);
+    glDeleteVertexArrays(1, &m_vao);
+  }
+
   auto Draw() const -> void {
     glBindVertexArray(m_vao);
     glDrawArrays(m_draw_mode, 0, m_vertex_count);
