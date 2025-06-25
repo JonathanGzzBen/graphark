@@ -8,4 +8,4 @@ uniform mat4 mView;
 uniform mat4 mProjection;
 uniform vec4 vColor;
 
-void main() { gl_Position = mProjection * mView * vec4(vPos, 0.0, 1.0); }
+void main() { gl_Position = mProjection * vec4(vPos, 0.0, 1.0); }

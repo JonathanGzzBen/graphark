@@ -69,7 +69,7 @@ auto main(int argc, char *argv[]) -> int {
   glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
 
   /* Create a windowed mode window and its OpenGL context */
-  GLFWwindow *window = glfwCreateWindow(640, 480, "Graphark", NULL, NULL);
+  GLFWwindow *window = glfwCreateWindow(500, 500, "Graphark", NULL, NULL);
   if (!window) {
     glfwTerminate();
     return -1;
@@ -95,22 +95,8 @@ auto main(int argc, char *argv[]) -> int {
 
   program.Use();
 
-  const float aspect_ratio = get_aspect_ratio(window)
-                                 .or_else(print_err_and_abort_execution<float>)
-                                 .value();
-
-  const auto m_projection =
-      glm::perspective(glm::radians(45.0f), aspect_ratio, 0.1f, 10.0f);
-  program.SetUniformMatrix("mProjection", m_projection)
-      .or_else(print_err_and_abort_execution<void>);
-
-  const auto m_view =
-      glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -2.5f));
-  program.SetUniformMatrix("mView", m_view)
-      .or_else(print_err_and_abort_execution<void>);
-
   glfwSetInputMode(window, GLFW_STICKY_KEYS, GLFW_TRUE);
-  Camera cam;
+  Camera cam(-10.0f, 10.0f, -10.0f, 10.0f);
   const auto handle_input = [&window, &cam](float delta_time) {
     const auto is_pressed = [&window](int key) {
       return glfwGetKey(window, key) == GLFW_PRESS;
@@ -146,6 +132,11 @@ auto main(int argc, char *argv[]) -> int {
   while (!glfwWindowShouldClose(window)) {
     delta_time = get_delta();
     handle_input(static_cast<float>(delta_time));
+
+    const auto m_projection =
+        glm::ortho(cam.minX(), cam.maxX(), cam.minY(), cam.maxY(), -1.0f, 1.0f);
+    program.SetUniformMatrix("mProjection", m_projection)
+        .or_else(print_err_and_abort_execution<void>);
 
     const graphark::Drawable2D axis =
         graphark::elements::get_axis_drawable(cam);
