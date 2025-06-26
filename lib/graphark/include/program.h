@@ -75,6 +75,26 @@ private:
   }
 
 public:
+  Program(Program &&other) noexcept : m_program(other.m_program) {
+    other.m_program =
+        0; // prevent the moved-from object from deleting the program
+  }
+
+  Program &operator=(Program &&other) noexcept {
+    if (this != &other) {
+      glDeleteProgram(m_program);
+      m_program = other.m_program;
+      other.m_program = 0;
+    }
+    return *this;
+  }
+
+  // Delete copy operations
+  Program(const Program &) = delete;
+  Program &operator=(const Program &) = delete;
+
+  ~Program() { glDeleteProgram(m_program); }
+
   static auto Create(const std::string &vertex_shader_filename,
                      const std::string &fragment_shader_filename)
       -> tl::expected<Program, Error> {
