@@ -146,15 +146,11 @@ auto main(int argc, char *argv[]) -> int {
   auto func_index = 0;
   double delta_time = 0.0;
   while (!glfwWindowShouldClose(window)) {
-    glClear(GL_COLOR_BUFFER_BIT);
-
     delta_time = get_delta();
     handle_input(static_cast<float>(delta_time));
 
     const auto m_projection =
         glm::ortho(cam.minX(), cam.maxX(), cam.minY(), cam.maxY(), -1.0f, 1.0f);
-    program.SetUniformMatrix("mProjection", m_projection)
-        .or_else(print_err_and_abort_execution<void>);
 
     const graphark::Drawable2D grid =
         graphark::elements::get_grid_drawable(cam);
@@ -162,6 +158,11 @@ auto main(int argc, char *argv[]) -> int {
         graphark::elements::get_axis_drawable(cam);
 
     /* Render here */
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    program.SetUniformMatrix("mProjection", m_projection)
+        .or_else(print_err_and_abort_execution<void>);
+
     program.SetUniformVector("vColor", glm::vec4(0.5, 0.5, 0.5, 1.0))
         .or_else(print_err_and_abort_execution<void>);
     grid.Draw();
