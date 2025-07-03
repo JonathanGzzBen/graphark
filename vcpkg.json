@@ -4,6 +4,7 @@
     "glew",
     "glm",
     "tl-expected",
-    "glfw3"
+    "glfw3",
+    "exprtk"
   ]
 }
