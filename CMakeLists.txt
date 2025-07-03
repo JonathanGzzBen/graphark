@@ -114,8 +114,7 @@ add_library(${graphark_lib}
 )
 target_include_directories(${graphark_lib} PUBLIC
         ${CMAKE_SOURCE_DIR}/lib/graphark/include)
-target_include_directories(${graphark_lib} PRIVATE ${EXPRTK_INCLUDE_DIRS})
-target_link_libraries(${graphark_lib} GLEW::GLEW)
+target_link_libraries(${graphark_lib} GLEW::GLEW exprtk)
 set_target_properties(${graphark_lib} PROPERTIES CXX_STANDARD 23)
 set_target_properties(${graphark_lib} PROPERTIES CXX_STANDARD_REQUIRED ON)
 
