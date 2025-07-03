@@ -5,8 +5,8 @@
 #include <string>
 
 namespace graphark {
-
-template <typename T> class FunctionEvaluator {
+template <typename T>
+class FunctionEvaluator {
 private:
   T m_x;
   exprtk::symbol_table<T> m_symbol_table;
@@ -14,7 +14,7 @@ private:
   exprtk::parser<T> m_parser;
 
 public:
-  explicit FunctionEvaluator(const std::string &expression_str) {
+  explicit FunctionEvaluator(const std::string& expression_str) {
     m_symbol_table.add_variable("x", m_x);
     m_symbol_table.add_constants();
 
@@ -28,7 +28,6 @@ public:
     return m_expression.value();
   }
 };
-
 } // namespace graphark
 
 #endif // FUNCTION_EVALUATOR_H

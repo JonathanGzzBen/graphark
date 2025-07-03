@@ -4,7 +4,6 @@
 #include <cmath>
 
 class Camera {
-
 private:
   float x_min_;
   float x_max_;
@@ -12,22 +11,24 @@ private:
   float y_max_;
 
 public:
-  Camera(float x_min, float x_max, float y_min, float y_max)
-      : x_min_{x_min}, x_max_{x_max}, y_min_{y_min}, y_max_{y_max} {}
+  Camera(const float x_min, const float x_max, const float y_min,
+         const float y_max)
+    : x_min_{x_min}, x_max_{x_max}, y_min_{y_min}, y_max_{y_max} {
+  }
 
-  auto minX() const { return x_min_; }
-  auto maxX() const { return x_max_; }
-  auto minY() const { return y_min_; }
-  auto maxY() const { return y_max_; }
+  [[nodiscard]] auto minX() const { return x_min_; }
+  [[nodiscard]] auto maxX() const { return x_max_; }
+  [[nodiscard]] auto minY() const { return y_min_; }
+  [[nodiscard]] auto maxY() const { return y_max_; }
 
-  auto pan(float x, float y) {
+  auto pan(const float x, const float y) {
     x_min_ += x;
     x_max_ += x;
     y_min_ += y;
     y_max_ += y;
   }
 
-  auto zoom(float factor) {
+  auto zoom(const float factor) {
     const double width = (x_max_ - x_min_);
     const double height = (y_max_ - y_min_);
     const double new_width = width * factor;

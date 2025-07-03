@@ -2,13 +2,9 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <cstdio>
-#include <fstream>
-#include <glm/ext/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include <glm/mat4x4.hpp>
 #include <iostream>
 #include <ranges>
-#include <sstream>
 #include <string>
 #include <tl/expected.hpp>
 
@@ -16,24 +12,23 @@
 #include "drawable2d.h"
 #include "drawable_elements.h"
 #include "error.h"
-#include "function_evaluator.h"
 #include "program.h"
 
 using namespace graphark::err;
 
-auto glfw_error_callback(int error, const char *description) {
+auto glfw_error_callback(const int error, const char* description) {
   std::cerr << "Error " << error << ": " << description << std::endl;
 }
 
 void APIENTRY glDebugCallback(GLenum source, GLenum type, GLuint id,
-                              GLenum severity, GLsizei length,
-                              const GLchar *message, const void *userParam) {
+                              const GLenum severity, GLsizei length,
+                              const GLchar* message, const void* userParam) {
   if (severity == GL_DEBUG_SEVERITY_NOTIFICATION)
     return;
   std::cerr << "OpenGL Debug: " << message << std::endl;
 }
 
-auto get_aspect_ratio(GLFWwindow *window) -> tl::expected<float, Error> {
+auto get_aspect_ratio(GLFWwindow* window) -> tl::expected<float, Error> {
   int window_width = -1;
   int window_height = -1;
   glfwGetWindowSize(window, &window_width, &window_height);
@@ -52,12 +47,12 @@ auto get_delta() -> double {
   return deltaTime;
 }
 
-auto main(int argc, char *argv[]) -> int {
+auto main(const int argc, char* argv[]) -> int {
   CLI::App app;
   std::string input_functions;
   app.add_option("functions", input_functions,
                  "Functions to graph separated by comma")
-      ->required();
+     ->required();
 
   CLI11_PARSE(app, argc, argv);
 
@@ -67,7 +62,7 @@ auto main(int argc, char *argv[]) -> int {
         std::views::filter([](const auto s) { return s != ' '; }) |
         std::views::split(',');
     std::vector<std::string> result;
-    for (const auto &function : functions_view) {
+    for (const auto& function : functions_view) {
       result.emplace_back(function.begin(), function.end());
     }
     return result;
@@ -85,7 +80,7 @@ auto main(int argc, char *argv[]) -> int {
   glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
 
   /* Create a windowed mode window and its OpenGL context */
-  GLFWwindow *window = glfwCreateWindow(500, 500, "Graphark", NULL, NULL);
+  GLFWwindow* window = glfwCreateWindow(500, 500, "Graphark", nullptr, nullptr);
   if (!window) {
     glfwTerminate();
     return -1;
@@ -106,8 +101,8 @@ auto main(int argc, char *argv[]) -> int {
 
   const auto program =
       graphark::Program::Create("shaders/vertex.glsl", "shaders/fragment.glsl")
-          .or_else(print_err_and_abort_execution<graphark::Program>)
-          .value();
+      .or_else(print_err_and_abort_execution<graphark::Program>)
+      .value();
 
   program.Use();
 
@@ -135,7 +130,7 @@ auto main(int argc, char *argv[]) -> int {
     }
     if (is_pressed(GLFW_KEY_EQUAL)) {
       cam.zoom(static_cast<float>(
-          std::pow(1.0 / static_cast<double>(zoom_factor), delta_time)));
+        std::pow(1.0 / static_cast<double>(zoom_factor), delta_time)));
     }
     if (is_pressed(GLFW_KEY_MINUS)) {
       cam.zoom(std::pow(zoom_factor, delta_time));
@@ -143,7 +138,6 @@ auto main(int argc, char *argv[]) -> int {
   };
 
   /* Loop until the user closes the window */
-  auto func_index = 0;
   double delta_time = 0.0;
   while (!glfwWindowShouldClose(window)) {
     delta_time = get_delta();
@@ -161,22 +155,22 @@ auto main(int argc, char *argv[]) -> int {
     glClear(GL_COLOR_BUFFER_BIT);
 
     program.SetUniformMatrix("mProjection", m_projection)
-        .or_else(print_err_and_abort_execution<void>);
+           .or_else(print_err_and_abort_execution<void>);
 
     program.SetUniformVector("vColor", glm::vec4(0.5, 0.5, 0.5, 1.0))
-        .or_else(print_err_and_abort_execution<void>);
+           .or_else(print_err_and_abort_execution<void>);
     grid.Draw();
 
     program.SetUniformVector("vColor", glm::vec4(1.0, 1.0, 1.0, 1.0))
-        .or_else(print_err_and_abort_execution<void>);
+           .or_else(print_err_and_abort_execution<void>);
     axis.Draw();
 
     program.SetUniformVector("vColor", glm::vec4(1.0, 0.5, 0.5, 1.0))
-        .or_else(print_err_and_abort_execution<void>);
-    for (const auto function : functions) {
+           .or_else(print_err_and_abort_execution<void>);
+    for (const auto& function : functions) {
       const graphark::Drawable2D function_line =
           graphark::elements::get_function_line_drawable_from_str(function, cam,
-                                                                  10);
+            10);
       function_line.Draw();
     }
 

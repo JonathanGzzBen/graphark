@@ -1,8 +1,9 @@
 #include "drawable_elements.h"
 
-namespace graphark::elements {
+#include <vector>
 
-auto get_axis_drawable(const Camera &cam) -> graphark::Drawable2D {
+namespace graphark::elements {
+auto get_axis_drawable(const Camera& cam) -> graphark::Drawable2D {
   std::vector<float> lines{};
 
   // Vertical line
@@ -17,15 +18,15 @@ auto get_axis_drawable(const Camera &cam) -> graphark::Drawable2D {
   lines.push_back(0.0f);
   lines.push_back(cam.maxY());
 
-  return graphark::Drawable2D(lines, GL_LINES);
+  return {lines, GL_LINES};
 }
 
-auto get_grid_drawable(const Camera &cam) -> graphark::Drawable2D {
+auto get_grid_drawable(const Camera& cam) -> graphark::Drawable2D {
   std::vector<float> vertices{};
 
   // Vertical lines
-  int x_start = static_cast<int>(std::floor(cam.minX()));
-  int x_end = static_cast<int>(std::ceil(cam.maxX()));
+  const int x_start = static_cast<int>(std::floor(cam.minX()));
+  const int x_end = static_cast<int>(std::ceil(cam.maxX()));
   for (int x = x_start; x <= x_end; x++) {
     vertices.push_back(static_cast<float>(x));
     vertices.push_back(cam.minY());
@@ -33,8 +34,8 @@ auto get_grid_drawable(const Camera &cam) -> graphark::Drawable2D {
     vertices.push_back(cam.maxY());
   }
   // Horizontal lines
-  int y_start = static_cast<int>(std::floor(cam.minY()));
-  int y_end = static_cast<int>(std::ceil(cam.maxY()));
+  const int y_start = static_cast<int>(std::floor(cam.minY()));
+  const int y_end = static_cast<int>(std::ceil(cam.maxY()));
   for (int y = y_start; y <= y_end; y++) {
     vertices.push_back(cam.minX());
     vertices.push_back(static_cast<float>(y));
@@ -42,18 +43,17 @@ auto get_grid_drawable(const Camera &cam) -> graphark::Drawable2D {
     vertices.push_back(static_cast<float>(y));
   }
 
-  return graphark::Drawable2D(vertices, GL_LINES);
+  return {vertices, GL_LINES};
 }
 
 auto get_function_line_drawable_from_str(
-    const std::string &expression_str, const Camera &cam,
+    const std::string& expression_str, const Camera& cam,
     const int n_subdivisions) -> graphark::Drawable2D {
-
   std::vector<float> line{};
 
   graphark::FunctionEvaluator<float> evaluator(expression_str);
 
-  float step_size = 1.0f / n_subdivisions;
+  const float step_size = 1.0f / static_cast<float>(n_subdivisions);
   float x = cam.minX();
   while (x <= cam.maxX()) {
     float y = evaluator.evaluate(x);
@@ -62,7 +62,6 @@ auto get_function_line_drawable_from_str(
     x += step_size;
   }
 
-  return graphark::Drawable2D(line, GL_LINE_STRIP);
+  return {line, GL_LINE_STRIP};
 }
-
 } // namespace graphark::elements
