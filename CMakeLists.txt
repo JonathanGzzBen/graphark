@@ -107,26 +107,24 @@ else ()
     find_path(EXPRTK_INCLUDE_DIRS "exprtk.hpp" REQUIRED)
 endif ()
 
-set(graphark_lib "${PROJECT_NAME}_lib")
-add_library(${graphark_lib}
-        lib/graphark/src/function_evaluator.cpp
-        lib/graphark/src/drawable_elements.cpp
+add_library(graphark_lib
+        lib/src/function_evaluator.cpp
+        lib/src/drawable_elements.cpp
 )
-target_include_directories(${graphark_lib} PUBLIC
-        ${CMAKE_SOURCE_DIR}/lib/graphark/include)
-target_link_libraries(${graphark_lib} GLEW::GLEW exprtk)
-set_target_properties(${graphark_lib} PROPERTIES CXX_STANDARD 23)
-set_target_properties(${graphark_lib} PROPERTIES CXX_STANDARD_REQUIRED ON)
+target_include_directories(graphark_lib PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/lib/include)
+target_link_libraries(graphark_lib GLEW::GLEW exprtk)
+set_target_properties(graphark_lib PROPERTIES CXX_STANDARD 23)
+set_target_properties(graphark_lib PROPERTIES CXX_STANDARD_REQUIRED ON)
 
 if (MSVC)
     message(STATUS "Adding /bigobj compiler flag for MSVC.")
-    target_compile_options(${graphark_lib} PUBLIC /bigobj)
+    target_compile_options(graphark_lib PUBLIC /bigobj)
 endif ()
 
-set(graphark "${PROJECT_NAME}")
-add_executable(${graphark} src/main.cpp)
+add_executable(graphark src/main.cpp)
 
-target_link_libraries(${graphark} ${graphark_lib} glfw GLEW::GLEW glm::glm tl::expected CLI11::CLI11)
-target_include_directories(${graphark} PRIVATE ${CMAKE_SOURCE_DIR}/include)
-set_target_properties(${graphark} PROPERTIES CXX_STANDARD 23)
-set_target_properties(${graphark} PROPERTIES CXX_STANDARD_REQUIRED ON)
+target_link_libraries(graphark graphark_lib glfw GLEW::GLEW glm::glm tl::expected CLI11::CLI11)
+target_include_directories(graphark PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+set_target_properties(graphark PROPERTIES CXX_STANDARD 23)
+set_target_properties(graphark PROPERTIES CXX_STANDARD_REQUIRED ON)

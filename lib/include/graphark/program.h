@@ -9,7 +9,7 @@
 #include <string>
 #include <tl/expected.hpp>
 
-#include "error.h"
+#include "graphark/error.h"
 
 using namespace graphark::err;
 

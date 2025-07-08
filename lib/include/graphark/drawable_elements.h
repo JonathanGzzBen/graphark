@@ -3,9 +3,9 @@
 
 #include <GL/glew.h>
 
-#include "camera.h"
-#include "drawable2d.h"
-#include "function_evaluator.h"
+#include "graphark/camera.h"
+#include "graphark/drawable2d.h"
+#include "graphark/function_evaluator.h"
 
 namespace graphark::elements {
 auto get_axis_drawable(const Camera& cam) -> graphark::Drawable2D;

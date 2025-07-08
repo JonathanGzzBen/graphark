@@ -8,11 +8,11 @@
 #include <string>
 #include <tl/expected.hpp>
 
-#include "camera.h"
-#include "drawable2d.h"
-#include "drawable_elements.h"
-#include "error.h"
-#include "program.h"
+#include "graphark/camera.h"
+#include "graphark/drawable2d.h"
+#include "graphark/drawable_elements.h"
+#include "graphark/error.h"
+#include "graphark/program.h"
 
 using namespace graphark::err;
 
