@@ -1,0 +1,10 @@
+{
+  "dependencies": [
+    "cli11",
+    "glew",
+    "glm",
+    "tl-expected",
+    "glfw3",
+    "exprtk"
+  ]
+}
